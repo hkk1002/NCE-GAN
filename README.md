@@ -4,7 +4,7 @@ You can read details of NCE-GAN from my master's thesis: [Dihedral angle predict
 
 <br/>
 
-## Comparison of [generative adversarial networks](https://arxiv.org/abs/1406.2661) GAN and NCE-GAN
+## Comparison of [generative adversarial networks](https://arxiv.org/abs/1406.2661) (GAN) and NCE-GAN
 | Model                                          | GAN                               | NCE-GAN  |
 |------------------------------------------------|-----------------------------------|----------|
 | Density estimation                             | Not possible (only density ratio) | Possible |
@@ -19,8 +19,31 @@ You can read details of NCE-GAN from my master's thesis: [Dihedral angle predict
 
 ## Note
 * "G_loss_choice='Minibatch'" means ...
-* "G_loss_choice='ln2'" means ...
-* generate_from_density_2D_new.py ...
+<br/>
+
+* Meaning of "G_loss_choice='ln2'" is described below.
+
+I found this loss for the generator while I was thinking about a generator which only generates 0 and 1. In this case, the data only contains 0 and 1. And let’s say ![equation](https://latex.codecogs.com/gif.latex?%5Calpha) is the probability to draw 0 from the data distribution, and ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_%7BG%7D) is the probability to draw 0 from the generator. If the generator works well, ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_%7BG%7D) should be close to ![equation](https://latex.codecogs.com/gif.latex?%5Calpha). 
+
+To simplify the description of the training process, let's assume the discriminator can find optimal solution for each iteration and optimizations of networks were done with infinite numbers of samples even though that is impossible.
+
+Then, the (vanilla) training loss of the generator:
+
+![equation](https://latex.codecogs.com/gif.latex?%5Cbegin%7Balign*%7D%20-%5Cmathbb%7BE%7D%5B%5Cln%20p%28S%3Dreal%7CG_%7Bi%7D%28z%29%29%5D%3D%26%20-%5B%5Calpha_%7BG_%7Bi%7D%7D%20%5Cln%28%5Cfrac%7B%5Calpha%7D%7B%5Calpha&plus;%5Calpha_G_%7Bi-1%7D%7D%29&plus;%281-%5Calpha_%7BG_%7Bi%7D%7D%29%20%5Cln%28%5Cfrac%7B1-%5Calpha%7D%7B%281-%5Calpha%29&plus;%281-%5Calpha_G_%7Bi-1%7D%29%7D%29%5D%5C%5C%20%3D%26%5Calpha_%7BG_%7Bi%7D%7D%20%5Cln%281&plus;%5Cfrac%7B%5Calpha_G_%7Bi-1%7D%7D%7B%5Calpha%7D%29&plus;%281-%5Calpha_%7BG_%7Bi%7D%7D%29%20%5Cln%281&plus;%5Cfrac%7B1-%5Calpha_G_%7Bi-1%7D%7D%7B1-%5Calpha%7D%29%5C%5C%20%3D%26%5Calpha_%7BG_%7Bi%7D%7D%20%5B%5Cln%281&plus;%5Cfrac%7B%5Calpha_G_%7Bi-1%7D%7D%7B%5Calpha%7D%29%20-%20%5Cln%281&plus;%5Cfrac%7B1-%5Calpha_G_%7Bi-1%7D%7D%7B1-%5Calpha%7D%29%5D&plus;%20%5Cln%281&plus;%5Cfrac%7B1-%5Calpha_G_%7Bi-1%7D%7D%7B1-%5Calpha%7D%29%20%5Cend%7Balign*%7D)
+
+where ![equation](https://latex.codecogs.com/gif.latex?G_%7Bi%7D) the generator after i th iterations of the training and ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G_%7Bi%7D) is the probability to draw 0 from the generator after i th iterations of the training.
+
+If we think about the optimal solution for each iteration, ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G_%7Bi%7D%3D0) is the optimal solution when ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G_%7Bi-1%7D%3E%5Calpha) and ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G_%7Bi%7D%3D1) is the optimal solution when ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G_%7Bi-1%7D%3C%5Calpha). And note the loss is ![equation](https://latex.codecogs.com/gif.latex?%5Cln%282%29) when ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G_%7Bi-1%7D%3D%5Calpha). This means if the generator can find the optimal solution for each iteration, ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G_%7Bi%7D) will continue to oscillate without converging to ![equation](https://latex.codecogs.com/gif.latex?%5Calpha) (except when ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G%3D0) or ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G%3D1) ).
+
+If we think about the optimal solution for the equation ![equation](https://latex.codecogs.com/gif.latex?-%5Cmathbb%7BE%7D%5B%5Cln%20p%28S%3Dreal%7CG_%7Bi%7D%28z%29%29%5D%3D%5Cln2), ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G_%7Bi%7D%3Df%28%5Calpha_G_%7Bi-1%7D%29) is the optimal solution for each iteration for a function ![equation](https://latex.codecogs.com/gif.latex?f%28x%29%3D%5Cfrac%7B%5Cln2-%5Cln%281&plus;%5Cfrac%7B1-x%7D%7B1-%5Calpha%7D%29%7D%7B%5Cln%281&plus;%5Cfrac%7Bx%7D%7B%5Calpha%7D%29-%5Cln%281&plus;%5Cfrac%7B1-x%7D%7B1-%5Calpha%7D%29%7D). 
+
+![equation](https://latex.codecogs.com/gif.latex?f%28x%29) has a fixed point at ![equation](https://latex.codecogs.com/gif.latex?%5Calpha). It seems ![equation](https://latex.codecogs.com/gif.latex?%7Cf%27%28x%29%7C%3C1) hold for ![equation](https://latex.codecogs.com/gif.latex?0%5Cle%20x%5Cle1) (I didn't prove as the calculation was too complex, but when I plotted graph for varing ![equation](https://latex.codecogs.com/gif.latex?%5Calpha), it seems to hold.). If the speculation is true, ![equation](https://latex.codecogs.com/gif.latex?%5Calpha_G_%7Bi%7D) will converge to ![equation](https://latex.codecogs.com/gif.latex?%5Calpha).
+
+Hence, it seems solving ![equation](https://latex.codecogs.com/gif.latex?-%5Cmathbb%7BE%7D%5B%5Cln%20p%28S%3Dreal%7CG_%7Bi%7D%28z%29%29%5D%3D%5Cln2) would be a better way to get an wanted solution at least for the situation mentioned above. So, "G_loss_choice='ln2'" means that we are using the same idea also for the other cases. The generator trys to 
+minimize ![equation](https://latex.codecogs.com/gif.latex?%28-%5Cmathbb%7BE%7D%5B%5Cln%20p%28S%3Dreal%7CG_%7Bi%7D%28z%29%29%5D-%5Cln2%29%5E2) so that it can get an approximate solution for ![equation](https://latex.codecogs.com/gif.latex?-%5Cmathbb%7BE%7D%5B%5Cln%20p%28S%3Dreal%7CG_%7Bi%7D%28z%29%29%5D%3D%5Cln2).
+<br/>
+
+* generate_from_density_2D_new.py: It handles the problem that p_model (C=target) approaches zero as training continues. The only change is ...
 
 <br/>
 
