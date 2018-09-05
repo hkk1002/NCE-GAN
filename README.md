@@ -18,7 +18,7 @@ You can read details of NCE-GAN from my master's thesis: [Dihedral angle predict
 <br/>
 
 ## Note
-* "G_loss_choice='Minibatch'" means ...
+* "G_loss_choice='Minibatch'" means the generator trys to generates sample considering minibatch samples. For details, I suggest the readers to read II.6 of the thesis.
 <br/>
 
 * Meaning of "G_loss_choice='ln2'" is described below.
