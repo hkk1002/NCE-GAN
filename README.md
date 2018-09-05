@@ -43,8 +43,18 @@ Hence, it seems solving ![equation](https://latex.codecogs.com/gif.latex?-%5Cmat
 minimize ![equation](https://latex.codecogs.com/gif.latex?%28-%5Cmathbb%7BE%7D%5B%5Cln%20p%28S%3Dreal%7CG_%7Bi%7D%28z%29%29%5D-%5Cln2%29%5E2) so that it can get an approximate solution for ![equation](https://latex.codecogs.com/gif.latex?-%5Cmathbb%7BE%7D%5B%5Cln%20p%28S%3Dreal%7CG_%7Bi%7D%28z%29%29%5D%3D%5Cln2).
 <br/>
 
-* generate_from_density_2D_new.py: It handles the problem that p_model (C=target) approaches zero as training continues. The only change is ...
+* generate_from_density_2D_new.py: It handles the problem that ![equation](https://latex.codecogs.com/gif.latex?%5Cdpi%7B100%7D%20p_%7Bmodel%7D%28%5Ctext%7BS%3Dtarget%7D%29) approaches zero as training continues. The only change is that the discriminator trains as if the discriminator is getting some samples from the target data distribution even trough it is not true. The datail is described below.
 
+Let's think about the case where the discriminator gets the same amounts of samples from the data distribution ![equation](https://latex.codecogs.com/gif.latex?p_%7Bdata%7D%28x%29) and the contrastive noise distribution ![equation](https://latex.codecogs.com/gif.latex?p_%7Bnoise%7D%28x%29). Density estimation using noise-contrastive estimation (NCE) is one example for this case.
+
+If we disregard the generated samples, 
+
+![equation](https://latex.codecogs.com/gif.latex?p%28S%3Ddata%7Cx%29%3D%5Cfrac%7Bp_%7Bdata%7D%28x%29%7D%7Bp_%7Bdata%7D%28x%29&plus;p_%7Bnoise%7D%28x%29%7D) and ![equation](https://latex.codecogs.com/gif.latex?p%28S%3Dnoise%7Cx%29%3D%5Cfrac%7Bp_%7Bnoise%7D%28x%29%7D%7Bp_%7Bdata%7D%28x%29&plus;p_%7Bnoise%7D%28x%29%7D).
+
+In generate_from_density_2D_new.py, the discriminator trains using soft label when it gets contrastive noise samples. 
+The label for noise samples is defined as ![equation](https://latex.codecogs.com/gif.latex?%5Cdpi%7B100%7D%20%5Cbegin%7Bbmatrix%7D%20p_%7B%5Ctext%7Blabel%7D%7D%28%5Ctext%7BS%3Dtarget%7D%7Cx%29%20%5C%5C%20p_%7B%5Ctext%7Blabel%7D%7D%28%5Ctext%7BS%3Dgenerated%7D%7Cx%29%20%5C%5C%20p_%7B%5Ctext%7Blabel%7D%7D%28%5Ctext%7BS%3Dnoise%7D%7Cx%29%20%5Cend%7Bbmatrix%7D%3D%5Cbegin%7Bbmatrix%7D%20%5Cfrac%7Bp_%7Btarget%7D%28x%29%7D%7Bp_%7Btarget%7D%28x%29&plus;p_%7Bnoise%7D%28x%29%7D%20%5C%5C%200%20%5C%5C%20%5Cfrac%7Bp_%7Bnoise%7D%28x%29%7D%7Bp_%7Btarget%7D%28x%29&plus;p_%7Bnoise%7D%28x%29%7D%20%5Cend%7Bbmatrix%7D). 
+
+Using this label in the training means the discriminator mimics the situation where it gets the same amounts of samples from the data and noise distribution.
 <br/>
 
 ## Dependencies
